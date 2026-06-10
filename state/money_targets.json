@@ -1,0 +1,22 @@
+{
+  "targets": {
+    "GBP_100": [
+      "One Door in 4 delivery",
+      "One Evidence Core demo",
+      "One hardware flip",
+      "One digital product sale"
+    ],
+    "GBP_1000": [
+      "Multiple Door in 4 jobs",
+      "Solicitor evidence packs",
+      "Hardware resale",
+      "Creative products"
+    ],
+    "GBP_10000": [
+      "Door in 4 pilot",
+      "Evidence Core workflow",
+      "JamesOS template",
+      "Publishing products"
+    ]
+  }
+}
