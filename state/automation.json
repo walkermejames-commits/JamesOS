@@ -1,0 +1,15 @@
+{
+  "allowed": [
+    "watch",
+    "score",
+    "alert",
+    "open searches",
+    "generate prompts",
+    "generate missions",
+    "generate reports"
+  ],
+  "manual_review_required": true,
+  "auto_open_browser": false,
+  "check_interval_minutes": 60,
+  "last_run": null
+}
