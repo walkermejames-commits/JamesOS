@@ -1,0 +1,20 @@
+{
+  "name": "Door in 5",
+  "code_name": "The Courier of Destiny",
+  "repo_url": "https://github.com/walkermejames-commits/Doorin5",
+  "purpose": "Hyper-local to national courier and delivery platform. Buyer, Seller, Driver, and Admin apps with dispatch automation and Stripe payments. Launching first in Tunbridge Wells.",
+  "status": "Early Development",
+  "completion_percent": 18,
+  "momentum_score": 35,
+  "fun_score": 72,
+  "revenue_score": 78,
+  "current_blocker": "No complete end-to-end delivery flow that a real person can use and pay for today.",
+  "next_task": "Define and build the absolute minimum viable delivery: one real job from posting to completion plus payment.",
+  "next_milestone": "One real person in Tunbridge Wells can post a job, a driver can accept and complete it, and payment processes.",
+  "fastest_route_to_revenue": "Get 5-10 real paid deliveries happening in Tunbridge Wells within 30 days.",
+  "time_to_first_sale": "2-4 weeks if we cut scope ruthlessly",
+  "time_to_100": "6-8 weeks with consistent local operations",
+  "time_to_1000": "4-6 months with expansion plus marketing",
+  "risk_level": "Medium",
+  "last_updated": "2026-06-10"
+}
