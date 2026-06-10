@@ -1,5 +1,23 @@
 # JamesOS Changelog
 
+## [0.3] - 2026-06-10
+
+### Added - Agent Mode
+- `python james.py agent` - Interactive agent session
+- `python james.py mission` - Daily mission generator
+- `python james.py focus` - Single action focus mode
+- `python james.py dashboard` - Local HTML dashboard (`dashboard.html`)
+- `python james.py gitcheck` - Safe local git status only
+- `state/agent.json` - Agent memory, autonomy levels, and safety boundaries
+- `prompt codex agent` - Self-improvement prompt for JamesOS
+
+### Changed
+- Bumped to v0.3
+- Stronger focus on practical daily use and revenue focus
+- Clear safety boundaries documented
+
+---
+
 ## [0.2] - 2026-06-10
 
 ### Added
@@ -7,7 +25,7 @@
 - `update` command - Safely update any field in project JSON files
 - `win` command - Record wins to memory/wins.md + daily log
 - `review` command - Weekly Executive Report (Push/Pause/Kill, revenue paths, next 10/20 hours)
-- `money` command - Fastest routes to £100 / £1,000 / £10,000
+- `money` command - Fastest routes to GBP 100 / GBP 1,000 / GBP 10,000
 
 ### Improved
 - Better error handling in project loading
