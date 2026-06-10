@@ -1,0 +1,11 @@
+{
+  "version": "0.4",
+  "preferred_methods": [
+    "invoice",
+    "bank transfer",
+    "public crypto receiving address"
+  ],
+  "public_receiving_addresses": {},
+  "approval_required": true,
+  "notes": "Only public receiving details belong here. JamesOS prepares payment wording for review. James handles all real-world payment actions manually."
+}
