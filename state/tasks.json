@@ -1,0 +1,58 @@
+{
+  "tasks": [
+    {
+      "id": "d4-001",
+      "project": "Door in 4",
+      "task": "Build one paid bulky item delivery flow",
+      "status": "todo",
+      "priority": "high",
+      "money_score": 95,
+      "momentum_score": 90
+    },
+    {
+      "id": "d4-002",
+      "project": "Door in 4",
+      "task": "Test buyer posting a marketplace delivery job",
+      "status": "todo",
+      "priority": "high",
+      "money_score": 90,
+      "momentum_score": 85
+    },
+    {
+      "id": "d5-001",
+      "project": "Door in 5",
+      "task": "Define rapid essentials catalogue and age check rules",
+      "status": "todo",
+      "priority": "medium",
+      "money_score": 65,
+      "momentum_score": 60
+    },
+    {
+      "id": "ev-001",
+      "project": "Evidence Transcript Core",
+      "task": "Build upload to transcript to evidence pack flow",
+      "status": "todo",
+      "priority": "high",
+      "money_score": 92,
+      "momentum_score": 82
+    },
+    {
+      "id": "chip-001",
+      "project": "ChipOS Mark II",
+      "task": "Build minimum live captions demo",
+      "status": "todo",
+      "priority": "medium",
+      "money_score": 40,
+      "momentum_score": 70
+    },
+    {
+      "id": "jo-001",
+      "project": "JamesOS",
+      "task": "Run daily-money and money-sniff every work session",
+      "status": "active",
+      "priority": "high",
+      "money_score": 80,
+      "momentum_score": 80
+    }
+  ]
+}
