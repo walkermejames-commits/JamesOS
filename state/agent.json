@@ -1,0 +1,43 @@
+{
+  "agent_name": "JamesOS Agent",
+  "version": "0.3",
+  "current_mode": "advisor",
+  "current_money_target": "£100",
+  "current_primary_project": "doorin5",
+  "current_secondary_project": "evidence",
+  "today_mission": null,
+  "last_mission_date": null,
+  "last_focus_action": "Define and build the absolute minimum viable delivery: one real job from posting to completion plus payment.",
+  "autonomy_level": "advisor",
+  "allowed_actions": [
+    "read local JSON state",
+    "write local logs",
+    "generate prompts",
+    "generate dashboard",
+    "suggest actions",
+    "run safe git status checks",
+    "create daily missions",
+    "record wins",
+    "prepare invoices and payment wording using public receiving addresses only"
+  ],
+  "blocked_actions": [
+    "spend money",
+    "send emails without approval",
+    "push to GitHub without approval",
+    "delete files",
+    "run destructive Git commands",
+    "contact customers without approval",
+    "make legal medical or financial claims",
+    "pretend guaranteed income",
+    "run unattended background processes",
+    "request seed phrases",
+    "request private keys",
+    "store recovery words",
+    "store bank logins",
+    "store exchange passwords",
+    "move crypto",
+    "initiate payments",
+    "execute trades"
+  ],
+  "safety_note": "This agent can think, plan, draft, log, and prepare money-making actions. It must not control wallets, move funds, spend money, contact customers, or access financial accounts. James approves and executes external actions manually. Public receiving addresses only. No seed phrases, no private keys, no wallet control."
+}
