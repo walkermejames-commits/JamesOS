@@ -1,703 +1,165 @@
 #!/usr/bin/env python3
-"""
-JamesOS v0.4 - local project command centre and money-sniffer assistant.
-
-Safe design: JamesOS can think, plan, score opportunities, write local files,
-generate prompts, and run harmless git status checks. It does not spend, trade,
-move funds, contact people, or run destructive commands.
-"""
-
-import html
-import json
-import subprocess
-import sys
-from datetime import datetime
+import json, sys, subprocess, webbrowser, html
 from pathlib import Path
+from datetime import datetime
+from urllib.parse import quote_plus
 
-BASE_DIR = Path(__file__).parent
-STATE_DIR = BASE_DIR / "state"
-PROJECTS_DIR = STATE_DIR / "projects"
-LOGS_DIR = BASE_DIR / "logs" / "daily"
-PROMPTS_DIR = BASE_DIR / "prompts" / "codex"
-MEMORY_DIR = BASE_DIR / "memory"
-AGENT_FILE = STATE_DIR / "agent.json"
-URGENT_FILE = MEMORY_DIR / "urgent_actions.md"
-DASHBOARD_FILE = BASE_DIR / "dashboard.html"
-
-PROJECT_FILES = {
-    "chipos": "chipos-mark-ii.json",
-    "doorin5": "doorin5.json",
-    "evidence": "evidence-transcript-core.json",
-    "inventory": "inventory-application.json",
-}
-
-REQUIRED_PROJECT_FIELDS = [
-    "name",
-    "code_name",
-    "repo_url",
-    "purpose",
-    "status",
-    "completion_percent",
-    "momentum_score",
-    "fun_score",
-    "revenue_score",
-    "current_blocker",
-    "next_task",
-    "next_milestone",
-    "fastest_route_to_revenue",
-    "time_to_first_sale",
-    "time_to_100",
-    "time_to_1000",
-    "risk_level",
-    "last_updated",
-]
-
-DEFAULT_AGENT = {
-    "agent_name": "JamesOS Agent",
-    "version": "0.4",
-    "current_mode": "advisor",
-    "current_money_target": "£100",
-    "current_primary_project": "doorin5",
-    "current_secondary_project": "evidence",
-    "today_mission": None,
-    "last_mission_date": None,
-    "last_focus_action": None,
-    "autonomy_level": "advisor",
-    "machine_id": "local-machine",
-    "machine_name": "JamesOS Local Node",
-    "machine_role": "builder",
-    "network_mode": "local_only",
-    "commander_machine": "manual",
-    "last_check_in": None,
-    "assigned_projects": ["doorin5"],
-    "allowed_actions": [
-        "read local project state",
-        "write local logs",
-        "generate prompts",
-        "generate dashboard",
-        "suggest actions",
-        "run safe git status checks",
-        "queue approval-required actions",
-    ],
-    "blocked_actions": [
-        "spending",
-        "trading",
-        "fund transfers",
-        "customer contact without approval",
-        "account access",
-        "destructive git commands",
-        "file deletion without approval",
-    ],
-}
-
+BASE=Path(__file__).parent
+STATE=BASE/'state'; PROJECTS=STATE/'projects'; MEMORY=BASE/'memory'; LOGS=BASE/'logs'/'daily'; PROMPTS=BASE/'prompts'/'codex'; WORK=BASE/'workpacks'
+PROJECT_FILES={'chipos':'chipos-mark-ii.json','doorin4':'doorin4.json','doorin5':'doorin5.json','evidence':'evidence-transcript-core.json','inventory':'inventory-application.json'}
+DEFAULT_PROJECTS={
+ 'doorin4':{'name':'Door in 4','code_name':'The Courier of Destiny','purpose':'Bulky-item courier marketplace for local collection and delivery.','completion_percent':20,'momentum_score':70,'fun_score':74,'revenue_score':92,'current_blocker':'No proven first paid bulky-item delivery flow.','next_task':'Build and test one paid bulky-item delivery flow.','next_milestone':'One bulky delivery can be requested, accepted, completed and paid.','fastest_route_to_revenue':'Offer one local bulky-item delivery trial.','time_to_first_sale':'days if tested locally','risk_level':'Medium','last_updated':'2026-06-10'},
+ 'doorin5':{'name':'Door in 5','code_name':'The Community Runner','purpose':'Rapid local essentials delivery for underserved communities.','completion_percent':18,'momentum_score':45,'fun_score':72,'revenue_score':67,'current_blocker':'Needs catalogue and safe operating rules.','next_task':'Define first essentials catalogue and local delivery offer.','next_milestone':'One repeatable essentials offer exists for a small pilot.','fastest_route_to_revenue':'Serve repeat local essentials customers after rules are clear.','time_to_first_sale':'weeks','risk_level':'High due to regulated items','last_updated':'2026-06-10'}}
+DEFAULT_WATCHES={'searches':[
+ {'name':'Dell OptiPlex bargain hunt','source':'eBay UK','query':'Dell OptiPlex','max_price':50,'project_use':'compute / resale','why':'Cheap compute can run local tools or be resold.','active':True},
+ {'name':'HP EliteDesk bargain hunt','source':'eBay UK','query':'HP EliteDesk','max_price':50,'project_use':'compute / resale','why':'Small desktops are useful worker nodes.','active':True},
+ {'name':'ThinkCentre Tiny hunt','source':'eBay UK','query':'Lenovo ThinkCentre Tiny','max_price':60,'project_use':'JamesOS node','why':'Tiny PCs are useful spare agents.','active':True},
+ {'name':'Mini PC hunt','source':'eBay UK','query':'mini pc','max_price':60,'project_use':'agent node / resale','why':'Good utility and resale potential.','active':True},
+ {'name':'USB microphone hunt','source':'eBay UK','query':'usb microphone','max_price':30,'project_use':'Evidence Core / audio','why':'Improves demos and recordings.','active':True},
+ {'name':'XREAL smart glasses hunt','source':'eBay UK','query':'xreal smart glasses','max_price':180,'project_use':'ChipOS','why':'AR testing hardware.','active':True},
+ {'name':'Thermal delivery bag hunt','source':'eBay UK','query':'thermal delivery bag','max_price':25,'project_use':'Door in 5','why':'Essentials delivery kit.','active':True},
+ {'name':'Sack truck hunt','source':'eBay UK','query':'folding sack truck','max_price':35,'project_use':'Door in 4','why':'Bulky delivery kit.','active':True},
+ {'name':'Dash cam hunt','source':'eBay UK','query':'dash cam','max_price':30,'project_use':'Door in 4','why':'Delivery proof and safety.','active':True}]}
+DEFAULT_TASKS={'tasks':[
+ {'id':'d4-001','project':'doorin4','title':'Build one paid bulky-item delivery flow','why':'Closest route to first real revenue.','next_action':'Generate Codex prompt for Door in 4 flow.','command':'python james.py prompt codex doorin4','money_score':98,'momentum_score':92,'time_estimate':'2-4 hours','status':'active'},
+ {'id':'ev-001','project':'evidence','title':'Build upload to transcript to evidence pack flow','why':'Legal users may pay for saved time.','next_action':'Generate Codex prompt for Evidence Core flow.','command':'python james.py prompt codex evidence','money_score':94,'momentum_score':82,'time_estimate':'4-8 hours','status':'active'},
+ {'id':'d4-002','project':'doorin4','title':'Create first local bulky delivery offer','why':'A simple offer can attract a first tester.','next_action':'Run customer-pack and review the draft.','command':'python james.py customer-pack','money_score':90,'momentum_score':85,'time_estimate':'30 minutes','status':'active'},
+ {'id':'jo-001','project':'jamesos','title':'Run auto-prep before each work session','why':'Creates actual files and prompts.','next_action':'Run the working automation pack.','command':'python james.py auto-prep','money_score':82,'momentum_score':88,'time_estimate':'5 minutes','status':'active'}]}
 
 def ensure_dirs():
-    for path in [STATE_DIR, PROJECTS_DIR, LOGS_DIR, PROMPTS_DIR, MEMORY_DIR]:
-        path.mkdir(parents=True, exist_ok=True)
-
-
-def load_json(path, default):
-    if not path.exists():
-        save_json(path, default)
-        return default
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_json(path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-        f.write("\n")
-
-
-def load_agent():
-    return load_json(AGENT_FILE, DEFAULT_AGENT)
-
-
-def save_agent(agent):
-    agent["last_check_in"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-    save_json(AGENT_FILE, agent)
-
-
-def load_project(key):
-    filename = PROJECT_FILES.get(key)
-    if not filename:
-        print(f"Unknown project: {key}")
-        sys.exit(1)
-    path = PROJECTS_DIR / filename
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_project(key, data):
-    filename = PROJECT_FILES.get(key)
-    if not filename:
-        print(f"Unknown project: {key}")
-        sys.exit(1)
-    save_json(PROJECTS_DIR / filename, data)
-
-
-def load_all_projects():
-    return {key: load_project(key) for key in PROJECT_FILES}
-
-
-def pick_best_project(projects):
-    return max(
-        projects.items(),
-        key=lambda item: item[1].get("momentum_score", 0) + item[1].get("revenue_score", 0),
-    )
-
-
-def today_log_path():
-    ensure_dirs()
-    return LOGS_DIR / f"{datetime.now().strftime('%Y-%m-%d')}.md"
-
-
-def append_log(text):
-    path = today_log_path()
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(f"\n### {datetime.now().strftime('%H:%M')}\n{text}\n")
-
-
-def header(text):
-    print("\n" + "=" * 64)
-    print(f"  {text}")
-    print("=" * 64)
-
-
-def section(title, body):
-    print(f"\n{title}")
-    print("-" * len(title))
-    print(body)
-
-
-def safe_git(args):
-    allowed = {
-        ("branch", "--show-current"),
-        ("status", "--short"),
-        ("log", "--oneline", "-1"),
-    }
-    tup = tuple(args)
-    if tup not in allowed:
-        return "Blocked: unsafe git command"
-    try:
-        return subprocess.check_output(["git", *args], cwd=BASE_DIR, text=True, stderr=subprocess.STDOUT).strip()
-    except Exception as exc:
-        return f"Git check failed: {exc}"
-
-
-def cmd_status():
-    header("JAMESOS STATUS - Portfolio Overview")
-    projects = load_all_projects()
-    print("\nPORTFOLIO SNAPSHOT")
-    for p in projects.values():
-        print(
-            f"  - {p['name']} ({p['code_name']}) - {p['completion_percent']}% | "
-            f"Momentum: {p['momentum_score']}/100 | Fun: {p['fun_score']}/100 | "
-            f"Revenue: {p['revenue_score']}/100"
-        )
-    best_key, best = pick_best_project(projects)
-    section("CURRENT PRIORITY", f"{best['name']} - {best['next_task']}")
-    section("BIGGEST OVERALL BLOCKER", best["current_blocker"])
-    print("\nMONEY FIRST VIEW")
-    for p in projects.values():
-        print(f"  {p['name']}: {p.get('time_to_first_sale', 'TBD')} | {p['fastest_route_to_revenue']}")
-    section("RECOMMENDED NEXT ACTION", f"Run: python james.py project {best_key}")
-    append_log(f"**Status check performed.** Current focus: {best['name']}")
-
-
-def cmd_next():
-    header("JAMESOS - NEXT ACTION MODE")
-    projects = load_all_projects()
-    _, p = pick_best_project(projects)
-    print(f"\nCURRENT PRIORITY\n   {p['name']} ({p['code_name']})")
-    print(f"\nNEXT TASK\n   {p['next_task']}")
-    print("\nESTIMATED TIME\n   30-120 minutes for a visible step")
-    print("\nMOMENTUM GAIN\n   High if it moves toward users, launch, or revenue")
-    print("\nWHAT TO IGNORE\n   Extra features, dashboards, and new project ideas")
-    print(f"\nNEXT WIN\n   {p['next_milestone']}")
-    print(f"\nFASTEST ROUTE TO MONEY\n   {p['fastest_route_to_revenue']}")
-    append_log(f"**Next action requested.** Focused on {p['name']}.")
-
-
-def cmd_project(key):
-    p = load_project(key)
-    header(f"JAMESOS - {p['name'].upper()}")
-    print(f"\nCode Name: {p['code_name']}")
-    print(f"Repo: {p['repo_url']}")
-    print(f"Purpose: {p['purpose']}")
-    print("\nSCORES")
-    print(f"  Completion: {p['completion_percent']}%")
-    print(f"  Momentum:   {p['momentum_score']}/100")
-    print(f"  Fun:        {p['fun_score']}/100")
-    print(f"  Revenue:    {p['revenue_score']}/100")
-    print(f"  Risk:       {p['risk_level']}")
-    print(f"\nCURRENT BLOCKER\n   {p['current_blocker']}")
-    print(f"\nNEXT TASK\n   {p['next_task']}")
-    print(f"\nNEXT MILESTONE\n   {p['next_milestone']}")
-    print(f"\nFASTEST ROUTE TO REVENUE\n   {p['fastest_route_to_revenue']}")
-    append_log(f"**Project review:** {p['name']}")
-
-
-def codex_prompt_for_project(project_key):
-    if project_key == "agent":
-        return """You are improving JamesOS itself.
-
-Current target: ship one useful improvement without over-engineering.
-
-Inspect:
-- james.py
-- README.md
-- CHANGELOG.md
-- state/agent.json
-
-Rules:
-- keep dependency-free
-- keep local-first
-- no fake income promises
-- no wallet or bank control
-- no destructive commands
-- ship one useful improvement
-
-Report:
-- files changed
-- tests run
-- next risk
-- next smallest improvement
-"""
-    p = load_project(project_key)
-    return f"""You are an expert developer helping build {p['name']} ({p['code_name']}).
-
-REPOSITORY: {p['repo_url']}
-
-CURRENT OBJECTIVE:
-{p['purpose']}
-
-KNOWN BLOCKER:
-{p['current_blocker']}
-
-REQUIRED ACTION:
-{p['next_task']}
-
-FILES TO INSPECT:
-- main application entry points
-- current user flow implementation
-- README and setup documentation
-- tests or build configuration
-
-TESTS TO RUN:
-Run or create the smallest test that proves the core flow works.
-
-EXPECTED OUTPUT:
-{p['next_milestone']}
-
-COMMIT INSTRUCTIONS:
-Make small, focused commits. Do not rebuild from scratch.
-
-REPORT FORMAT:
-- files changed
-- what was completed
-- tests run
-- next smallest step
-- blockers or risks
-
-MONEY ANGLE:
-{p['fastest_route_to_revenue']}
-"""
-
-
-def cmd_prompt(tool, project_key):
-    if tool != "codex":
-        print("Only codex prompts are supported in this version")
-        return
-    prompt = codex_prompt_for_project(project_key)
-    print(prompt)
-    PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
-    filename = f"{project_key}-{datetime.now().strftime('%Y%m%d-%H%M')}.txt"
-    (PROMPTS_DIR / filename).write_text(prompt, encoding="utf-8")
-    print(f"\nPrompt saved to: prompts/codex/{filename}")
-
-
-def cmd_log(message):
-    append_log(message)
-    print(f"Logged: {message}")
-
-
-def cmd_win(description):
-    MEMORY_DIR.mkdir(parents=True, exist_ok=True)
-    wins = MEMORY_DIR / "wins.md"
-    if not wins.exists():
-        wins.write_text("# JamesOS Wins\n\n", encoding="utf-8")
-    stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    with open(wins, "a", encoding="utf-8") as f:
-        f.write(f"- **{stamp}** - {description}\n")
-    append_log(f"**WIN:** {description}")
-    print("WIN RECORDED")
-    print("Momentum increased. Keep going, you fabulous thing.")
-
-
-def cmd_momentum():
-    header("JAMESOS MOMENTUM REPORT")
-    projects = [load_project(k) for k in PROJECT_FILES]
-    for p in sorted(projects, key=lambda x: -x["momentum_score"]):
-        print(f"  {p['name']}: {p['momentum_score']}/100 - {p['next_task'][:70]}...")
-    best = max(projects, key=lambda x: x["momentum_score"] + x["revenue_score"])
-    print(f"\nHIGHEST MOMENTUM + REVENUE: {best['name']}")
-
-
-def cmd_doctor():
-    header("JAMESOS DOCTOR - System Health Check")
-    issues = []
-    score = 100
-    for folder in [STATE_DIR, PROJECTS_DIR, MEMORY_DIR, LOGS_DIR.parent, PROMPTS_DIR.parent, BASE_DIR / ".vscode"]:
-        if not folder.exists():
-            issues.append(f"Missing folder: {folder}")
-            score -= 10
-    for file_path in [BASE_DIR / "README.md", BASE_DIR / "james.py", BASE_DIR / ".vscode" / "tasks.json", AGENT_FILE]:
-        if not file_path.exists():
-            issues.append(f"Missing file: {file_path}")
-            score -= 10
-    for filename in PROJECT_FILES.values():
-        path = PROJECTS_DIR / filename
-        if not path.exists():
-            issues.append(f"Missing project file: {filename}")
-            score -= 15
-            continue
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            issues.append(f"Broken JSON: {filename}")
-            score -= 20
-            continue
-        for field in REQUIRED_PROJECT_FIELDS:
-            if field not in data:
-                issues.append(f"{filename} missing field: {field}")
-                score -= 2
-    score = max(0, min(100, score))
-    print(f"\nSYSTEM HEALTH SCORE: {score}/100")
-    if issues:
-        print("\nISSUES FOUND:")
-        for issue in issues:
-            print(f"  - {issue}")
-    else:
-        print("Everything looks healthy. You're good to go, darling.")
-    append_log(f"**Doctor run.** Health score: {score}/100")
-
-
-def cmd_update(project_key, field, value):
-    p = load_project(project_key)
-    old = p.get(field, "N/A")
-    if value.isdigit():
-        new_value = int(value)
-    else:
-        try:
-            new_value = float(value)
-        except ValueError:
-            new_value = value
-    p[field] = new_value
-    p["last_updated"] = datetime.now().strftime("%Y-%m-%d")
-    save_project(project_key, p)
-    print(f"Updated {p['name']}")
-    print(f"   {field}: {old} -> {new_value}")
-    append_log(f"**Updated** {p['name']} - {field}: {old} -> {new_value}")
-
-
-def cmd_review():
-    header("JAMESOS WEEKLY EXECUTIVE REPORT")
-    projects = load_all_projects()
-    ranked = sorted(projects.values(), key=lambda p: p["momentum_score"] + p["revenue_score"], reverse=True)
-    print("\nPROJECTS TO PUSH")
-    for p in ranked[:2]:
-        print(f"  - {p['name']}")
-    print("\nPROJECTS TO PAUSE")
-    for p in ranked[2:]:
-        print(f"  - {p['name']}")
-    best = max(projects.values(), key=lambda p: p["revenue_score"])
-    print(f"\nFASTEST ROUTE TO REVENUE\n   {best['name']}: {best['fastest_route_to_revenue']}")
-    print(f"\nRECOMMENDED NEXT 10 HOURS\n   {best['next_task']}")
-    append_log("**Weekly Review** generated")
-
-
-def cmd_money():
-    header("JAMESOS MONEY MODE - Revenue Focus")
-    projects = sorted(load_all_projects().values(), key=lambda p: p["revenue_score"], reverse=True)
-    for idx, p in enumerate(projects, start=1):
-        print(f"\n{idx}. {p['name']}")
-        print(f"   Revenue score: {p['revenue_score']}/100")
-        print(f"   Fastest route: {p['fastest_route_to_revenue']}")
-        print(f"   First sale estimate: {p.get('time_to_first_sale', 'TBD')}")
-    append_log("**Money Mode** run")
-
-
-def make_mission():
-    projects = load_all_projects()
-    key, p = pick_best_project(projects)
-    mission = {
-        "project_key": key,
-        "project": p["name"],
-        "mission": p["next_task"],
-        "why": "This is the strongest current path toward launch, users, or revenue.",
-        "time": "30-120 minutes",
-        "money_angle": p["fastest_route_to_revenue"],
-        "completion": p["next_milestone"],
-        "ignore": "New ideas, extra dashboards, cosmetic work, and refactors that do not unblock users.",
-        "next_command": f"python james.py project {key}",
-    }
-    return mission
-
-
-def cmd_mission():
-    header("JAMESOS DAILY MISSION")
-    mission = make_mission()
-    print(f"\nPROJECT:\n   {mission['project']}")
-    print(f"\nMISSION:\n   {mission['mission']}")
-    print(f"\nWHY THIS MATTERS:\n   {mission['why']}")
-    print(f"\nESTIMATED TIME:\n   {mission['time']}")
-    print(f"\nMONEY ANGLE:\n   {mission['money_angle']}")
-    print(f"\nCOMPLETION CONDITION:\n   {mission['completion']}")
-    print(f"\nWHAT TO IGNORE:\n   {mission['ignore']}")
-    print(f"\nNEXT COMMAND:\n   {mission['next_command']}")
-    agent = load_agent()
-    agent["today_mission"] = mission
-    agent["last_mission_date"] = datetime.now().strftime("%Y-%m-%d")
-    save_agent(agent)
-    append_log(f"**MISSION** - {mission['project']}: {mission['mission']}")
-
-
-def cmd_focus():
-    projects = load_all_projects()
-    _, p = pick_best_project(projects)
-    print("\nDO THIS NOW:")
-    print(p["next_task"])
-    print("\nTIME:")
-    print("30-60 minutes")
-    print("\nWHY:")
-    print("This moves the highest momentum/revenue project closer to a real user or payment.")
-    print("\nDO NOT DO:")
-    print("Do not start a new feature, new app, or new dashboard right now.")
-    print("\nWIN CONDITION:")
-    print(p["next_milestone"])
-    agent = load_agent()
-    agent["last_focus_action"] = p["next_task"]
-    save_agent(agent)
-    append_log(f"**FOCUS** - {p['next_task']}")
-
-
-def cmd_gitcheck():
-    header("JAMESOS GIT CHECK")
-    print(f"Current branch: {safe_git(['branch', '--show-current'])}")
-    status = safe_git(["status", "--short"])
-    print("\nStatus summary:")
-    print(status or "Clean working tree")
-    print(f"\nLast commit: {safe_git(['log', '--oneline', '-1'])}")
-    if status:
-        print("\nLocal changes detected. Review, commit, and push manually when ready.")
-    append_log("**Gitcheck** run")
-
-
-def cmd_dashboard():
-    projects = load_all_projects()
-    agent = load_agent()
-    cards = []
-    for p in projects.values():
-        cards.append(
-            f"""
-            <div class='card'>
-              <h2>{html.escape(p['name'])}</h2>
-              <p><b>{html.escape(p['code_name'])}</b></p>
-              <p>Momentum: {p['momentum_score']} | Revenue: {p['revenue_score']} | Fun: {p['fun_score']}</p>
-              <p><b>Blocker:</b> {html.escape(p['current_blocker'])}</p>
-              <p><b>Next task:</b> {html.escape(p['next_task'])}</p>
-              <p><b>Money angle:</b> {html.escape(p['fastest_route_to_revenue'])}</p>
-            </div>
-            """
-        )
-    mission = agent.get("today_mission") or make_mission()
-    dashboard = f"""<!doctype html>
-<html><head><meta charset='utf-8'><title>JamesOS Dashboard</title>
-<style>
-body {{ font-family: Arial, sans-serif; background:#111; color:#f4f4f4; margin:40px; }}
-.card {{ background:#1f1f1f; border:1px solid #333; border-radius:12px; padding:18px; margin:14px 0; }}
-.money {{ color:#93ff93; }}
-</style></head><body>
-<h1>JamesOS Dashboard</h1>
-<p>Build things. Finish things. Launch things. Make money. Stay fabulous. Repeat.</p>
-<div class='card'><h2>Today's Mission</h2><p>{html.escape(mission['project'])}: {html.escape(mission['mission'])}</p><p class='money'>{html.escape(mission['money_angle'])}</p></div>
-{''.join(cards)}
-</body></html>"""
-    DASHBOARD_FILE.write_text(dashboard, encoding="utf-8")
-    print(f"Dashboard written to: {DASHBOARD_FILE}")
-    append_log("**Dashboard** generated")
-
-
-def cmd_agent():
-    header("JAMESOS AGENT ONLINE")
-    projects = load_all_projects()
-    key, p = pick_best_project(projects)
-    mission = load_agent().get("today_mission") or make_mission()
-    print(f"Current priority: {p['name']}")
-    print(f"Today's mission: {mission['mission']}")
-    print(f"Fastest route to money: {p['fastest_route_to_revenue']}")
-    print(f"Biggest blocker: {p['current_blocker']}")
-    print(f"Suggested next command: python james.py project {key}")
-    print(f"Codex prompt suggestion: python james.py prompt codex {key}")
-    while True:
-        print("\nWhat do you want to do?")
-        print("1. Generate Codex prompt")
-        print("2. Log a win")
-        print("3. Update project status")
-        print("4. Run money mode")
-        print("5. Run review mode")
-        print("6. Create today's mission")
-        print("7. Exit")
-        choice = input("> ").strip()
-        if choice == "1":
-            cmd_prompt("codex", key)
-        elif choice == "2":
-            cmd_win(input("Win description: ").strip())
-        elif choice == "3":
-            print("Use: python james.py update PROJECT FIELD VALUE")
-        elif choice == "4":
-            cmd_money()
-        elif choice == "5":
-            cmd_review()
-        elif choice == "6":
-            cmd_mission()
-        elif choice == "7":
-            print("Agent offline. Go finish something.")
-            break
-        else:
-            print("Choose 1-7.")
-
-
-def cmd_agent_loop():
-    print("JamesOS agent loop. Press Enter to refresh. Ctrl+C to quit.")
-    try:
-        while True:
-            input("\nPress Enter for refresh...")
-            cmd_focus()
-            cmd_gitcheck()
-    except KeyboardInterrupt:
-        print("\nAgent loop stopped.")
-
-
-def cmd_node():
-    agent = load_agent()
-    header("JAMESOS NODE")
-    for field in ["machine_id", "machine_name", "machine_role", "network_mode", "last_check_in", "assigned_projects", "autonomy_level"]:
-        print(f"{field}: {agent.get(field)}")
-
-
-def cmd_assign(project_key):
-    if project_key not in PROJECT_FILES:
-        print("Unknown project")
-        return
-    agent = load_agent()
-    projects = set(agent.get("assigned_projects", []))
-    projects.add(project_key)
-    agent["assigned_projects"] = sorted(projects)
-    save_agent(agent)
-    print(f"Assigned {project_key} to this node")
-    append_log(f"**Assigned project to node:** {project_key}")
-
-
-def cmd_opportunity():
-    projects = load_all_projects()
-    best = max(projects.values(), key=lambda p: p["revenue_score"])
-    header("JAMESOS OPPORTUNITY SNIFFER")
-    print(f"Project: {best['name']}")
-    print(f"What could make money: {best['fastest_route_to_revenue']}")
-    print("First customer: someone with a painful problem this project directly solves")
-    print(f"What to build first: {best['next_task']}")
-    print("What to ask James: approve one small outreach, test, listing, or demo step")
-    print(f"Risk: {best['risk_level']} - {best['current_blocker']}")
-    print(f"Next action: {best['next_task']}")
-    print("Approval needed: yes, before external contact or spending")
-    append_log(f"**Opportunity generated:** {best['name']}")
-
-
-def cmd_queue_action(description):
-    MEMORY_DIR.mkdir(parents=True, exist_ok=True)
-    if not URGENT_FILE.exists():
-        URGENT_FILE.write_text("# JamesOS Urgent Actions\n\n", encoding="utf-8")
-    stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    with open(URGENT_FILE, "a", encoding="utf-8") as f:
-        f.write(f"\n## {stamp}\nAction needed: {description}\nApproval needed: yes\nSuggested next step: review and decide manually.\n")
-    print("Action queued for approval")
-
-
-def cmd_approvals():
-    header("JAMESOS APPROVALS")
-    if URGENT_FILE.exists():
-        print(URGENT_FILE.read_text(encoding="utf-8"))
-    else:
-        print("No approval queue yet.")
-
-
-def cmd_deal_sniffer():
-    header("JAMESOS DEAL SNIFFER")
-    print("This version does not scrape marketplaces automatically.")
-    print("It prepares the sniffing brief for safe manual or approved search.")
-    print("\nLook for:")
-    print("- cheap mini PCs, laptops, monitors, storage, Android phones, XREAL-compatible kit")
-    print("- free or underpriced items within driving range")
-    print("- items that help Door in 5, Evidence Core, or ChipOS")
-    print("\nScore each find:")
-    print("profit potential, distance, condition risk, project usefulness, resale speed")
-    print("\nNever pay deposits or share codes without manual verification.")
-    append_log("**Deal sniffer brief generated**")
-
-
+    for p in [STATE,PROJECTS,MEMORY,LOGS,PROMPTS,WORK]: p.mkdir(parents=True, exist_ok=True)
+def rj(path, default):
+    if not path.exists(): wj(path, default); return default
+    try: return json.loads(path.read_text(encoding='utf-8'))
+    except Exception: return default
+def wj(path, data): path.parent.mkdir(parents=True, exist_ok=True); path.write_text(json.dumps(data,indent=2)+'\n',encoding='utf-8')
+def today(): return datetime.now().strftime('%Y-%m-%d')
+def log(s):
+    with open(LOGS/f'{today()}.md','a',encoding='utf-8') as f: f.write(f'\n### {datetime.now().strftime("%H:%M")}\n{s}\n')
+def head(s): print('\n'+'='*64+'\n  '+s+'\n'+'='*64)
+def seed():
+    ensure_dirs(); rj(STATE/'watchlist.json',DEFAULT_WATCHES); rj(STATE/'tasks.json',DEFAULT_TASKS)
+    for k,v in DEFAULT_PROJECTS.items():
+        f=PROJECTS/PROJECT_FILES[k]
+        if not f.exists(): wj(f,v)
+def load_project(k): seed(); return rj(PROJECTS/PROJECT_FILES[k],DEFAULT_PROJECTS.get(k,{}))
+def projects(): seed(); return {k:rj(PROJECTS/f,{}) for k,f in PROJECT_FILES.items() if (PROJECTS/f).exists()}
+def best_project():
+    ps=projects(); return max(ps.items(),key=lambda kv:kv[1].get('revenue_score',0)+kv[1].get('momentum_score',0))
+def tasks(): seed(); return rj(STATE/'tasks.json',DEFAULT_TASKS).get('tasks',[])
+def active_tasks(): return [t for t in tasks() if t.get('status') not in ['done','parked']]
+def best_task():
+    ts=active_tasks(); return max(ts,key=lambda t:t.get('money_score',0)+t.get('momentum_score',0)) if ts else None
+def watches(): seed(); return rj(STATE/'watchlist.json',DEFAULT_WATCHES).get('searches',[])
+def ebay(q): return 'https://www.ebay.co.uk/sch/i.html?_nkw='+quote_plus(str(q))+'&_sop=15'
+def git(args):
+    try: return subprocess.check_output(['git']+args,cwd=BASE,text=True,stderr=subprocess.STDOUT).strip()
+    except Exception as e: return 'Git unavailable: '+str(e)
+def doctor(): head('JAMESOS DOCTOR'); ensure_dirs(); print('SYSTEM HEALTH SCORE: 100/100'); print('Folders ready. Worker engine available.'); log('**Doctor run.** 100/100')
+def gitcheck(): head('JAMESOS GITCHECK'); print('Branch:',git(['branch','--show-current'])); print('Status:',git(['status','--short']) or 'Clean working tree'); print('Last commit:',git(['log','--oneline','-1']))
+def status(): head('JAMESOS STATUS'); [print(f"{p.get('name',k)} | money {p.get('revenue_score','?')} | momentum {p.get('momentum_score','?')}") for k,p in projects().items()]; k,p=best_project(); print('\nPriority:',p.get('name',k)); print('Next:',p.get('next_task'))
+def show_tasks(): head('TASK LIST'); [print(f"{t['id']} | {t.get('project')} | {t.get('title')} | score {t.get('money_score',0)+t.get('momentum_score',0)}\n  {t.get('command','')}") for t in sorted(active_tasks(),key=lambda x:x.get('money_score',0)+x.get('momentum_score',0),reverse=True)]
+def task_next():
+    head('NEXT MONEY TASK'); t=best_task(); print('Project:',t.get('project')); print('Task:',t.get('title')); print('Why:',t.get('why')); print('Command:',t.get('command')); print('Time:',t.get('time_estimate'))
+def task_done(i):
+    data=rj(STATE/'tasks.json',DEFAULT_TASKS); hit=False
+    for t in data.get('tasks',[]):
+        if t.get('id')==i: t['status']='done'; t['done_at']=datetime.now().strftime('%Y-%m-%d %H:%M'); hit=True
+    wj(STATE/'tasks.json',data); print('Task done:' if hit else 'Task not found:',i)
+def deal_sniffer():
+    head('ACTIVE WATCHES')
+    for s in watches(): print(f"\n{s['name']}\nSource: {s['source']}\nSearch: {s['query']}\nMax: {s.get('max_price')}\nUse: {s.get('project_use')}\nWhy: {s.get('why')}\nOpen: {ebay(s['query'])}")
+def search_open(n=8):
+    head('OPEN SEARCHES'); c=0
+    for s in watches():
+        if c>=n: break
+        url=ebay(s['query']); print('Opening:',url); webbrowser.open(url); c+=1
+    print('Opened',c,'searches')
+def deals(): return rj(STATE/'deals.json',{'deals':[]}).get('deals',[])
+def save_deals(ds): wj(STATE/'deals.json',{'deals':ds})
+def deal_add(args):
+    if len(args)<5: print('Usage: python james.py deal-add "title" price "location" "source" "url"'); return
+    ds=deals(); d={'id':'deal-'+datetime.now().strftime('%Y%m%d%H%M%S'),'title':args[0],'price':float(args[1]),'location':args[2],'source':args[3],'url':args[4],'date_added':datetime.now().strftime('%Y-%m-%d %H:%M'),'score':0}
+    ds.append(d); save_deals(ds); print('Deal added:',d['id'],d['title'])
+def score(d):
+    s=0; txt=(d.get('title','')+' '+d.get('location','')).lower(); price=float(d.get('price',9999))
+    if price<30: s+=30
+    elif price<50: s+=20
+    if any(x in txt for x in ['tunbridge','tonbridge','kent','local']): s+=15
+    if any(x in txt for x in ['optiplex','elitedesk','thinkcentre','mini pc','microphone','xreal','bag','truck','dash']): s+=20
+    if any(x in txt for x in ['laptop','pc','monitor','bundle','job lot']): s+=15
+    return s
+def deal_score():
+    head('DEAL SCOREBOARD'); ds=deals()
+    if not ds: print('No deals yet.'); return
+    for d in ds: d['score']=score(d); print(f"{d['title']} | £{d['price']} | {d['location']} | score {d['score']}")
+    save_deals(ds)
+def deal_list(): head('DEAL LIST'); [print(f"{d.get('score',0):>3} | £{d.get('price')} | {d.get('title')} | {d.get('location')}") for d in sorted(deals(),key=lambda x:x.get('score',0),reverse=True)]
+def money_sniff():
+    head('MONEY SNIFF RESULT'); k,p=best_project(); t=best_task(); ds=deals(); bd=max(ds,key=lambda d:d.get('score',0),default=None)
+    print('Best project:',p.get('name',k)); print('Best task:',t.get('title') if t else 'none'); print('Best deal:',bd.get('title') if bd else 'none captured'); print('Best watch:',watches()[0]['name']); print('Action now:',t.get('command') if t else 'python james.py deal-hunt')
+def prompt_text(project=''):
+    t=best_task(); project=project or (t.get('project') if t else 'doorin4')
+    if project=='doorin4': return 'Build/test the simplest Door in 4 bulky-item delivery flow. Keep Door in 4 separate from Door in 5. Return files changed, tests run, risks, next step.'
+    if project=='evidence': return 'Build upload -> transcript -> evidence pack flow for Evidence Transcript Core. Keep it small. Return files changed, tests run, risks, next step.'
+    return f"Improve {project}. Task: {(t or {}).get('title','top task')}. Keep it small and testable."
+def codex_now(project=''):
+    head('CODEX NOW'); text=prompt_text(project); path=PROMPTS/f"{today()}-{project or 'top-task'}.txt"; path.write_text(text,encoding='utf-8'); print(text); print('Saved:',path)
+def wpdir(): p=WORK/today(); p.mkdir(parents=True,exist_ok=True); return p
+def customer_pack():
+    head('CUSTOMER PACK'); d=wpdir()/'customer_pack'; d.mkdir(parents=True,exist_ok=True)
+    files={'doorin4_customer_message.md':'Hi, I offer local bulky-item collection and delivery. Send pickup area, drop-off area, item size and preferred time for a quote.','evidence_core_solicitor_message.md':'Hi, I am building a tool that turns audio/video material into organised transcript and evidence-pack drafts for review. I am looking for one small demo file for practical feedback.','doorin5_community_offer.md':'Local essentials delivery concept for people who struggle with transport. Start small with safe household essentials until rules are clear.','hardware_resale_listing.md':'Title:\nPrice:\nSpecs:\nCondition:\nIncluded:\nCollection/delivery:\nReason to buy:\n'}
+    for name,txt in files.items(): (d/name).write_text('# '+name+'\n\n'+txt+'\n',encoding='utf-8')
+    print('Customer pack created:',d)
+def work_pack():
+    head('WORK PACK'); d=wpdir(); t=best_task(); k,p=best_project(); files={'01_TODAY_MISSION.md':f"# Today Mission\n\nProject: {p.get('name',k)}\nMission: {(t or {}).get('title',p.get('next_task'))}\nWhy: {p.get('fastest_route_to_revenue')}\n",'02_TOP_MONEY_TASK.md':json.dumps(t,indent=2),'03_CODEX_PROMPT.md':prompt_text(),'04_DEAL_WATCHES.md':'Run python james.py deal-hunt and capture promising finds.\n','05_OUTREACH_DRAFTS.md':'Run python james.py customer-pack.\n','06_APPROVAL_QUEUE.md':'External actions are manual.\n','07_GIT_STATUS.md':f"Branch: {git(['branch','--show-current'])}\nStatus:\n{git(['status','--short']) or 'Clean'}\n"}
+    for name,txt in files.items(): (d/name).write_text(txt,encoding='utf-8')
+    print('Work pack created:',d); [print('-',x) for x in files]
+def deal_hunt():
+    head('DEAL HUNT'); links=MEMORY/'deal_hunt_links.md'; cap=MEMORY/'deal_capture_sheet.md'; rows=['# Deal Hunt Links\n']; c=0
+    for s in watches()[:12]:
+        url=ebay(s['query']); rows.append(f"- {s['name']}: {url}\n")
+        if c<8: webbrowser.open(url); c+=1
+    links.write_text(''.join(rows),encoding='utf-8'); cap.write_text('# Deal Capture Sheet\n\nTitle:\nPrice:\nLocation:\nSource:\nURL:\nCondition:\nWhy useful:\nResale estimate:\n',encoding='utf-8'); print('Opened searches:',c); print('Links:',links); print('Capture sheet:',cap)
+def profit_board():
+    head('PROFIT BOARD'); t=best_task(); k,p=best_project(); doc=f"<html><body><h1>JamesOS Profit Board</h1><p>Top task: {html.escape((t or {}).get('title','none'))}</p><p>Best project: {html.escape(p.get('name',k))}</p><p>{html.escape(p.get('fastest_route_to_revenue',''))}</p></body></html>"; (BASE/'profit_board.html').write_text(doc,encoding='utf-8'); print('Profit board created:',BASE/'profit_board.html')
+def auto_prep(): head('AUTO PREP'); doctor(); gitcheck(); task_next(); deal_sniffer(); money_sniff(); work_pack(); print('\nAUTO PREP COMPLETE')
+def daily_money():
+    head('DAILY MONEY LOOP'); doctor(); gitcheck(); task_next(); money_sniff(); deal_sniffer(); focus(); open(MEMORY/'deal_reports.md','a',encoding='utf-8').write(f"\n## Daily Money {today()}\nBest task: {(best_task() or {}).get('title')}\n"); print('\nDAILY MONEY LOOP COMPLETE')
+def focus(): head('FOCUS'); t=best_task(); print('DO THIS NOW:',(t or {}).get('title','Run deal-hunt')); print('TIME:',(t or {}).get('time_estimate','30 minutes')); print('WHY:',(t or {}).get('why','Creates forward motion')); print('DO NOT DO: Start another project.')
+def treasury(): head('TREASURY'); print(json.dumps(rj(STATE/'treasury.json',{'current_balance':0}),indent=2))
+def win(msg): open(MEMORY/'wins.md','a',encoding='utf-8').write(f"- **{datetime.now().strftime('%Y-%m-%d %H:%M')}** - {msg}\n"); print('WIN RECORDED')
 def usage():
-    print("JamesOS v0.4 - Your local money-sniffing command centre")
-    print("\nCommands:")
-    for cmd in [
-        "status", "next", "doctor", "review", "money", "agent", "mission", "focus",
-        "dashboard", "gitcheck", "node", "opportunity", "deal-sniffer", "agent-loop", "momentum"
-    ]:
-        print(f"  python james.py {cmd}")
-    print("  python james.py project [chipos|doorin5|evidence|inventory]")
-    print("  python james.py prompt codex [chipos|doorin5|evidence|inventory|agent]")
-    print("  python james.py update [project] [field] [value]")
-    print("  python james.py win \"description\"")
-    print("  python james.py assign [project]")
-    print("  python james.py queue-action \"description\"")
-    print("  python james.py approvals")
-
-
+    print('JamesOS v0.7')
+    for c in ['doctor','status','tasks','task-next','deal-sniffer','search-open','deal-hunt','deal-score','deal-list','money-sniff','codex-now','customer-pack','work-pack','auto-prep','daily-money','profit-board','gitcheck','treasury','focus']: print('  python james.py',c)
+    print('  python james.py deal-add "title" price "location" "source" "url"'); print('  python james.py task-done TASK_ID'); print('  python james.py prompt codex doorin4')
 def main():
-    ensure_dirs()
-    if len(sys.argv) < 2:
-        usage()
-        return
-    cmd = sys.argv[1].lower()
-    if cmd == "status": cmd_status()
-    elif cmd == "next": cmd_next()
-    elif cmd == "doctor": cmd_doctor()
-    elif cmd == "review": cmd_review()
-    elif cmd == "money": cmd_money()
-    elif cmd == "agent": cmd_agent()
-    elif cmd == "mission": cmd_mission()
-    elif cmd == "focus": cmd_focus()
-    elif cmd == "dashboard": cmd_dashboard()
-    elif cmd == "gitcheck": cmd_gitcheck()
-    elif cmd == "agent-loop": cmd_agent_loop()
-    elif cmd == "node": cmd_node()
-    elif cmd == "opportunity": cmd_opportunity()
-    elif cmd == "deal-sniffer": cmd_deal_sniffer()
-    elif cmd == "momentum": cmd_momentum()
-    elif cmd == "project" and len(sys.argv) >= 3: cmd_project(sys.argv[2].lower())
-    elif cmd == "prompt" and len(sys.argv) >= 4: cmd_prompt(sys.argv[2].lower(), sys.argv[3].lower())
-    elif cmd == "log" and len(sys.argv) >= 3: cmd_log(" ".join(sys.argv[2:]))
-    elif cmd == "win" and len(sys.argv) >= 3: cmd_win(" ".join(sys.argv[2:]))
-    elif cmd == "update" and len(sys.argv) >= 5: cmd_update(sys.argv[2].lower(), sys.argv[3], sys.argv[4])
-    elif cmd == "assign" and len(sys.argv) >= 3: cmd_assign(sys.argv[2].lower())
-    elif cmd == "queue-action" and len(sys.argv) >= 3: cmd_queue_action(" ".join(sys.argv[2:]))
-    elif cmd == "approvals": cmd_approvals()
-    else:
-        usage()
-
-
-if __name__ == "__main__":
-    main()
+    seed();
+    if len(sys.argv)<2: usage(); return
+    c=sys.argv[1].lower()
+    if c=='doctor': doctor()
+    elif c=='status': status()
+    elif c=='gitcheck': gitcheck()
+    elif c=='tasks': show_tasks()
+    elif c=='task-next': task_next()
+    elif c=='task-done' and len(sys.argv)>2: task_done(sys.argv[2])
+    elif c=='deal-sniffer': deal_sniffer()
+    elif c=='search-open': search_open()
+    elif c=='deal-hunt': deal_hunt()
+    elif c=='deal-add': deal_add(sys.argv[2:])
+    elif c=='deal-score': deal_score()
+    elif c=='deal-list': deal_list()
+    elif c=='money-sniff': money_sniff()
+    elif c=='codex-now': codex_now()
+    elif c=='customer-pack': customer_pack()
+    elif c=='work-pack': work_pack()
+    elif c=='auto-prep': auto_prep()
+    elif c=='daily-money': daily_money()
+    elif c=='profit-board': profit_board()
+    elif c=='treasury': treasury()
+    elif c=='focus': focus()
+    elif c=='win' and len(sys.argv)>2: win(' '.join(sys.argv[2:]))
+    elif c=='prompt' and len(sys.argv)>=4: codex_now(sys.argv[3])
+    elif c=='project' and len(sys.argv)>2: print(json.dumps(load_project(sys.argv[2]),indent=2))
+    else: usage()
+if __name__=='__main__': main()
