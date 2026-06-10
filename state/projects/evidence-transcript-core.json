@@ -1,0 +1,20 @@
+{
+  "name": "Evidence Transcript Core",
+  "code_name": "The Courtroom Tea Extractor",
+  "repo_url": "https://github.com/walkermejames-commits/evidence-transcript-core",
+  "purpose": "AI-powered legal evidence processing platform. Audio and video transcription, speaker diarization, timeline generation, evidence packs, and expert workflows for solicitors.",
+  "status": "Early Prototype",
+  "completion_percent": 8,
+  "momentum_score": 22,
+  "fun_score": 65,
+  "revenue_score": 82,
+  "current_blocker": "No working public-facing tool that a real solicitor can upload a file to and get a usable evidence pack from.",
+  "next_task": "Build the smallest possible upload to transcription to basic evidence pack flow that a solicitor can test.",
+  "next_milestone": "A real solicitor can upload an audio file and receive a downloadable evidence pack within one session.",
+  "fastest_route_to_revenue": "Paid early access for UK solicitors who need fast evidence processing.",
+  "time_to_first_sale": "5-8 weeks if we ship a testable version quickly",
+  "time_to_100": "3-4 months",
+  "time_to_1000": "7-10 months",
+  "risk_level": "Medium",
+  "last_updated": "2026-06-10"
+}
