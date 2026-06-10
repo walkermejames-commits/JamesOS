@@ -37,14 +37,15 @@ env/
 .DS_Store
 Thumbs.db
 
-# JamesOS specific
+# Local/private files
+.env
+*.key
+secrets/
+
+# Runtime-generated files
 logs/daily/*.md
 !logs/daily/.gitkeep
 prompts/codex/*.txt
 memory/*.md
 !memory/.gitkeep
-
-# Secrets
-.env
-*.key
-secrets/
+dashboard.html
