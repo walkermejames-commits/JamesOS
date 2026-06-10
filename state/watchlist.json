@@ -1,0 +1,50 @@
+{
+  "cheap_compute": [
+    "Dell OptiPlex",
+    "HP EliteDesk",
+    "Lenovo ThinkCentre Tiny",
+    "Mini PCs",
+    "Job lot computers",
+    "Used laptops",
+    "Broken laptops",
+    "Cheap SSDs",
+    "NVMe drives",
+    "RAM"
+  ],
+  "ar_hardware": [
+    "XREAL",
+    "Nreal",
+    "Smart glasses",
+    "Samsung phones",
+    "DP Alt Mode phones",
+    "USB-C hubs",
+    "Bluetooth microphones"
+  ],
+  "doorin4_gear": [
+    "Trolleys",
+    "Sack trucks",
+    "Dash cams",
+    "Phone mounts",
+    "Power banks",
+    "Hi-vis gear"
+  ],
+  "doorin5_gear": [
+    "Thermal bags",
+    "Delivery bags",
+    "Receipt printers",
+    "Scales"
+  ],
+  "evidence_gear": [
+    "USB microphones",
+    "Zoom recorders",
+    "Headphones",
+    "Storage",
+    "Scanners"
+  ],
+  "publishing_gear": [
+    "Printers",
+    "Label printers",
+    "Drawing tablets",
+    "Audio gear"
+  ]
+}
