@@ -1,0 +1,59 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "JamesOS Status",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "status"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "JamesOS Next Action",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "next"],
+      "group": "build"
+    },
+    {
+      "label": "JamesOS Codex Prompt - ChipOS",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "prompt", "codex", "chipos"],
+      "group": "build"
+    },
+    {
+      "label": "JamesOS Codex Prompt - Doorin5",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "prompt", "codex", "doorin5"],
+      "group": "build"
+    },
+    {
+      "label": "JamesOS Codex Prompt - Evidence",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "prompt", "codex", "evidence"],
+      "group": "build"
+    },
+    {
+      "label": "JamesOS Codex Prompt - Inventory",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "prompt", "codex", "inventory"],
+      "group": "build"
+    },
+    {
+      "label": "JamesOS Momentum",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}/james.py", "momentum"],
+      "group": "build"
+    }
+  ]
+}
