@@ -1,0 +1,15 @@
+{
+  "total_seed_pennies": 10.0,
+  "total_earned": 25.5,
+  "total_spent": 0,
+  "current_balance": 35.5,
+  "public_receiving_addresses": {},
+  "pending_spend_proposals": [
+    "£45 - New SSD for builds"
+  ],
+  "profit_splits": {
+    "personal": 0.5,
+    "reinvest": 0.5
+  },
+  "last_updated": "2026-06-10"
+}
