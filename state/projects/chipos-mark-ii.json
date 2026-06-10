@@ -1,0 +1,20 @@
+{
+  "name": "ChipOS Mark II",
+  "code_name": "The Fabulous Future Face Computer",
+  "repo_url": "https://github.com/walkermejames-commits/Chip-iOS-Mach-2",
+  "purpose": "AI-powered operating system for AR smart glasses with live captions, HUD, and context awareness. Built for XREAL and Android with accessibility features.",
+  "status": "Prototype",
+  "completion_percent": 12,
+  "momentum_score": 28,
+  "fun_score": 85,
+  "revenue_score": 35,
+  "current_blocker": "No working end-to-end demo that a stranger can try on actual XREAL glasses yet.",
+  "next_task": "Build the absolute minimum HUD plus live captions demo that runs on XREAL glasses.",
+  "next_milestone": "Stranger can put on the glasses and see live captions plus a basic HUD within 15 minutes of setup.",
+  "fastest_route_to_revenue": "Early access paid beta for accessibility-focused AR users and developers.",
+  "time_to_first_sale": "6-10 weeks if we ship a testable version fast",
+  "time_to_100": "3-4 months with consistent shipping",
+  "time_to_1000": "6-9 months with marketing plus features",
+  "risk_level": "Medium-High",
+  "last_updated": "2026-06-10"
+}
