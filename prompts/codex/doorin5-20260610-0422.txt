@@ -1,0 +1,41 @@
+You are an expert developer helping build Door in 5 (The Courier of Destiny).
+
+REPOSITORY: https://github.com/walkermejames-commits/Doorin5
+
+CURRENT OBJECTIVE:
+Hyper-local to national courier and delivery platform. Buyer, Seller, Driver, and Admin apps with dispatch automation and Stripe payments. Launching first in Tunbridge Wells.
+
+KNOWN BLOCKER:
+No complete end-to-end delivery flow that a real person can use and pay for today.
+
+REQUIRED ACTION:
+Define and build the absolute minimum viable delivery (one real job from posting to completion + payment).
+
+FILES TO INSPECT (priority order):
+- Main application entry points
+- Current user flow implementation
+- Any existing payment or delivery logic
+
+TESTS TO RUN:
+Create the smallest possible test that proves the core flow works.
+
+EXPECTED OUTPUT:
+A working One real person in Tunbridge Wells can post a job, a driver can accept and complete it, and payment processes.
+
+COMMIT INSTRUCTIONS:
+Make small, focused commits. Message format: "feat: [what was done] - progress toward first paying user"
+
+REPORT FORMAT:
+After you're done, tell me:
+- What was completed
+- What is now possible that wasn't before
+- Next smallest step
+- Any blockers you hit
+
+MONEY-MAKING ANGLE:
+Get 5-10 real paid deliveries happening in Tunbridge Wells within 30 days.
+
+NEXT LAUNCH MILESTONE:
+One real person in Tunbridge Wells can post a job, a driver can accept and complete it, and payment processes.
+
+Stay practical. Ship fast. Make it fabulous.
