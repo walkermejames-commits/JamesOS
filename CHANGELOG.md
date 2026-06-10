@@ -7,7 +7,7 @@
 - `update` command - Safely update any field in project JSON files
 - `win` command - Record wins to memory/wins.md + daily log
 - `review` command - Weekly Executive Report (Push/Pause/Kill, revenue paths, next 10/20 hours)
-- `money` command - Fastest routes to GBP 100 / GBP 1,000 / GBP 10,000
+- `money` command - Fastest routes to £100 / £1,000 / £10,000
 
 ### Improved
 - Better error handling in project loading
