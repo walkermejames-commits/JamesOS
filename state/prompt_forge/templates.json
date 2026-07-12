@@ -1,0 +1,39 @@
+{
+  "templates": [
+    {
+      "template_id": "codex.production_task",
+      "name": "Codex production task",
+      "description": "Assembles a repository-aware implementation prompt for Codex.",
+      "component_ids": [
+        "role.production_engineer",
+        "context.jamesos_project",
+        "task.user_task",
+        "constraint.safe_extension",
+        "adapter.codex",
+        "validation.strict",
+        "output.delivery_summary"
+      ],
+      "output_name": "codex-production-task",
+      "version": 1,
+      "active": true
+    },
+    {
+      "template_id": "grok.research_pack",
+      "name": "Grok research pack",
+      "description": "Assembles a grounded research prompt with explicit candidate-task handling.",
+      "component_ids": [
+        "role.production_engineer",
+        "context.jamesos_project",
+        "task.user_task",
+        "constraint.safe_extension",
+        "adapter.grok_research",
+        "validation.strict",
+        "zip.standard_package",
+        "output.delivery_summary"
+      ],
+      "output_name": "grok-research-pack",
+      "version": 1,
+      "active": true
+    }
+  ]
+}
