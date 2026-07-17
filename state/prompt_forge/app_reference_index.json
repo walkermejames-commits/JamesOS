@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "generated_for": "JamesOS Prompt Forge",
+  "apps": [
+    {
+      "app_id": "evidence-transcript-core",
+      "name": "Evidence Transcript Core",
+      "repository": "walkermejames-commits/evidence-transcript-core",
+      "architecture": "Electron, React, TypeScript, FastAPI, Python, SQLite",
+      "priority": 10,
+      "database_focus": [
+        "ECS source matching Batch 002",
+        "legal authority provenance",
+        "human review queue",
+        "reasoning graph integration"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "ECS and legal knowledge",
+      "next_database_task": "Match SHPO statutory provisions, seizure and retention powers, CPIA disclosure, HRA Articles 6 and 8, accessibility and digital-attribution records to exact sources."
+    },
+    {
+      "app_id": "jamesos",
+      "name": "JamesOS",
+      "repository": "walkermejames-commits/JamesOS",
+      "architecture": "Python CLI, JSON state, SQLite extensions",
+      "priority": 9,
+      "database_focus": [
+        "Prompt Forge",
+        "project registry",
+        "task history",
+        "cross-app reference index"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "Prompt Forge",
+      "next_database_task": "Wire the Prompt Forge SQLite repository into james.py and add controlled prompt imports."
+    },
+    {
+      "app_id": "door-in-4",
+      "name": "Door in Four",
+      "repository": null,
+      "architecture": "Next.js, Supabase, Stripe",
+      "priority": 9,
+      "database_focus": [
+        "quote lifecycle",
+        "buyer links",
+        "driver jobs",
+        "delivery proof",
+        "payment events"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "paid bulky-item delivery flow",
+      "next_database_task": "Create an event-led order schema linking quote, checkout, assignment, pickup proof, delivery proof, payout and audit history."
+    },
+    {
+      "app_id": "door-in-5",
+      "name": "Door in Five",
+      "repository": "walkermejames-commits/Doorin5",
+      "architecture": "Next.js application",
+      "priority": 8,
+      "database_focus": [
+        "catalogue",
+        "price snapshots",
+        "20 percent markup",
+        "single-driver runs",
+        "customer addresses"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "local essentials ordering",
+      "next_database_task": "Design the first safe catalogue, price-snapshot and delivery-run tables without mixing Door in Four records."
+    },
+    {
+      "app_id": "sales-ai",
+      "name": "SalesAI",
+      "repository": "walkermejames-commits/SalesAi",
+      "architecture": "Node service, SQLite CRM, website lead intake",
+      "priority": 8,
+      "database_focus": [
+        "lead source attribution",
+        "contact history",
+        "pipeline stages",
+        "follow-up queue",
+        "conversion evidence"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "CRM and lead ingestion",
+      "next_database_task": "Add idempotent website-lead ingestion, activity history, deduplication and follow-up scheduling tables."
+    },
+    {
+      "app_id": "jamesos-tester",
+      "name": "JamesOS Tester",
+      "repository": "walkermejames-commits/jamesos-tester",
+      "architecture": "Electron desktop application",
+      "priority": 7,
+      "database_focus": [
+        "test packs",
+        "test runs",
+        "assertion results",
+        "artifact manifests",
+        "regression history"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "test-pack execution history",
+      "next_database_task": "Create persistent test-run and assertion-result history so repeated folder tests can be compared over time."
+    },
+    {
+      "app_id": "ventures-website",
+      "name": "James E Ventures Website",
+      "repository": "walkermejames-commits/-James-E-Ventures-website.",
+      "architecture": "Web application deployed on Vercel",
+      "priority": 6,
+      "database_focus": [
+        "product enquiries",
+        "demo requests",
+        "lead routing",
+        "consent history"
+      ],
+      "recommended_template": "codex.production_task",
+      "default_module": "sales enquiry flow",
+      "next_database_task": "Create a shared enquiry schema that can feed SalesAI without coupling the website directly to the CRM database."
+    }
+  ]
+}
